@@ -9,6 +9,8 @@
     <Import_RootNamespace>MotionController</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)RotorMotionController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MotionController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PistonMotionController.cs" />
   </ItemGroup>
 </Project>

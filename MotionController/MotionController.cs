@@ -23,7 +23,7 @@ namespace IngameScript
     {
         public abstract class MotionController
         {
-            Program parentProgram;
+            private Program parentProgram;
             public Action<string> Echo = text => { };
             public UpdateFrequency requiredFrequency = UpdateFrequency.None;
 
@@ -50,6 +50,7 @@ namespace IngameScript
                 return false;
             }
 
+            public abstract UpdateFrequency SetTarget(float target);
             public abstract UpdateFrequency Update(UpdateType updateType);
         }
     }

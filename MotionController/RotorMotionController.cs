@@ -21,37 +21,39 @@ namespace IngameScript
 {
     partial class Program
     {
-        public class PistonMotionController : MotionController
+        public class RotorMotionController : MotionController
         {
-            public float setSpeed = 0.5f;   //[m/s]
-            public float setTarget = -1;
-            public bool truncatePosition = true;
-            IMyPistonBase myPiston;
+            public float setSpeed = MathHelper.RPMToRadiansPerSecond * 1f;  //[rad/s]
+            public float setTarget = float.NaN;                             //rad
+            public bool truncatePosition = false;
+            IMyMotorStator myRotor;
 
-            public PistonMotionController(IMyPistonBase piston, Program program) : base(program)
+            public RotorMotionController(IMyMotorStator rotor, Program program) : base(program)
             {
-                myPiston = piston;
+                myRotor = rotor;
             }
 
-            public override UpdateFrequency SetTarget(float target)
+            public override UpdateFrequency SetTarget(float targetDegrees)
             {
-                if ((target <= myPiston.MinLimit) || (target >= myPiston.MaxLimit))
+                float targetRadians = MathHelper.ToRadians(targetDegrees);
+
+                if ((targetRadians <= myRotor.LowerLimitRad) || (targetRadians >= myRotor.UpperLimitRad))
                 {
                     if (!truncatePosition)
                     {
-                        Echo("Piston target position out of limits");
+                        Echo("Rotor target position out of limits");
                         requiredFrequency = UpdateFrequency.None;
                         return requiredFrequency;
                     }
                     else
                     {
                         Echo("Truncating target position");
-                        target = (target < myPiston.MinLimit) ? myPiston.MinLimit : (target > myPiston.MaxLimit) ? myPiston.MaxLimit : target;
+                        targetRadians = (targetRadians < myRotor.LowerLimitRad) ? myRotor.LowerLimitRad : (targetRadians > myRotor.UpperLimitRad) ? myRotor.UpperLimitRad : targetRadians;
                     }
                 }
-                    
-                setTarget = target;
-                Echo($"Piston target position set to {target:0.#}");
+
+                setTarget = targetRadians;
+                Echo($"Rotor target position set to {targetDegrees:0.#}°");
                 requiredFrequency = UpdateFrequency.Once;
 
                 return requiredFrequency;
@@ -59,26 +61,28 @@ namespace IngameScript
 
             public override UpdateFrequency Update(UpdateType updateType)
             {
-                if ((setTarget >= 0) && (UpdateTypeMatchesFrequency(updateType, requiredFrequency)))
+                if ((setTarget != float.NaN) && (UpdateTypeMatchesFrequency(updateType, requiredFrequency)))
                 {
                     //always positive
-                    float distanceFromTargetPosition = Math.Max(myPiston.CurrentPosition, setTarget) - Math.Min(myPiston.CurrentPosition, setTarget);
-                    float moveDirection = Math.Sign(setTarget - myPiston.CurrentPosition);
+                    float radiansFromTargetPosition = Math.Max(myRotor.Angle, setTarget) - Math.Min(myRotor.Angle, setTarget);
+                    float moveDirection = Math.Sign(setTarget - myRotor.Angle);
                     float signedSpeed = setSpeed * moveDirection;
-                    float timeToTargetPosition = distanceFromTargetPosition / setSpeed;
-                    
-                    Echo($"Piston has {distanceFromTargetPosition:0.#} m to go, {timeToTargetPosition:0.#}s at {setSpeed:0.#}m/s");
+                    float timeToTargetPosition = radiansFromTargetPosition / setSpeed;
+
+                    Echo($"Rotor has {MathHelper.ToDegrees(radiansFromTargetPosition):0.#}° to go, {timeToTargetPosition:0.#}s at {setSpeed * MathHelper.RadiansPerSecondToRPM:0.#}rpm");
 
                     //less than 1 tick remaining, call it done
                     if (timeToTargetPosition < (1f / 60))
                     {
-                        myPiston.Velocity = 0;
-                        Echo("Piston done");
+                        myRotor.TargetVelocityRad = 0;
+                        myRotor.RotorLock = true;
+                        Echo("Rotor done");
                         requiredFrequency = UpdateFrequency.None;
                     }
                     else
                     {
-                        myPiston.Velocity = signedSpeed;
+                        myRotor.RotorLock = false;
+                        myRotor.TargetVelocityRad = signedSpeed;
 
                         //less than 10 ticks remaining
                         if (timeToTargetPosition < (1f / 6))
