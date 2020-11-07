@@ -24,8 +24,10 @@ namespace IngameScript
         public class PistonMotionController
         {
             IMyPistonBase myPiston;
-            float speed = 0.5f;
+            float setSpeed = 0.5f;      //[m/s]
             float setPosition = -1;
+            float acceleration = 5f;    //[m/s²]
+            bool truncatePosition = true;
 
             IEnumerator<bool> myStateMachine;
             UpdateFrequency requiredFrequency;
@@ -35,25 +37,33 @@ namespace IngameScript
             {
                 myPiston = piston;
                 parentProgram = program;
-                myStateMachine = StateMachine();
             }
 
             public UpdateFrequency SetTarget(float position)
             {
                 if ((position <= myPiston.MinLimit) || (position >= myPiston.MaxLimit))
                 {
-                    parentProgram.Echo("Piston target out of limits");
-                    requiredFrequency = UpdateFrequency.None;
+                    if (!truncatePosition)
+                    {
+                        parentProgram.Echo("Piston target position out of limits");
+                        requiredFrequency = UpdateFrequency.None;
+                        return requiredFrequency;
+                    }
+                    else
+                    {
+                        parentProgram.Echo("Truncating target position");
+                        position = (position < myPiston.MinLimit) ? myPiston.MinLimit : (position > myPiston.MaxLimit) ? myPiston.MaxLimit : position;
+                    }
                 }
                     
                 setPosition = position;
-                parentProgram.Echo($"Piston target set to {position:0.#}");
+                parentProgram.Echo($"Piston target position set to {position:0.#}");
                 requiredFrequency = UpdateFrequency.Once;
 
                 return requiredFrequency;
             }
 
-            public bool UpdateTypeMatchesFrequency(UpdateType type, UpdateFrequency frequency)
+            bool UpdateTypeMatchesFrequency(UpdateType type, UpdateFrequency frequency)
             {
                 if (((frequency == UpdateFrequency.Once) && ((type & UpdateType.Once) != 0)) || 
                     ((frequency == UpdateFrequency.Update1) && ((type & UpdateType.Update1) != 0)) ||
@@ -70,28 +80,20 @@ namespace IngameScript
             {
                 if ((setPosition >= 0) && (UpdateTypeMatchesFrequency(updateType, requiredFrequency)))
                 {
-                    myStateMachine.MoveNext();
-                }
-
-                return requiredFrequency;
-            }
-
-            public IEnumerator<bool> StateMachine()
-            {
-                while (true) {
                     //always positive
                     float distanceFromTargetPosition = Math.Max(myPiston.CurrentPosition, setPosition) - Math.Min(myPiston.CurrentPosition, setPosition);
-                    float signedSpeed = speed * Math.Sign(setPosition - myPiston.CurrentPosition);
-                    float timeToTargetPosition = distanceFromTargetPosition / speed;
-
-                    parentProgram.Echo($"Piston has {distanceFromTargetPosition:0.#} m to go, {timeToTargetPosition:0.#}s at {speed:0.#}m/s");
+                    float moveDirection = Math.Sign(setPosition - myPiston.CurrentPosition);
+                    float signedSpeed = setSpeed * moveDirection;
+                    float timeToTargetPosition = distanceFromTargetPosition / setSpeed;
+                    
+                    parentProgram.Echo($"Piston has {distanceFromTargetPosition:0.#} m to go, {timeToTargetPosition:0.#}s at {setSpeed:0.#}m/s");
 
                     //less than 1 tick remaining, call it done
-                    if (timeToTargetPosition < (1f/60)) {
+                    if (timeToTargetPosition < (1f / 60))
+                    {
                         myPiston.Velocity = 0;
                         parentProgram.Echo("Piston done");
                         requiredFrequency = UpdateFrequency.None;
-                        yield return false;
                     }
                     else
                     {
@@ -113,12 +115,12 @@ namespace IngameScript
                         else
                         {
                             parentProgram.Echo("Switching to Update100");
-                            requiredFrequency = UpdateFrequency.Update10;
+                            requiredFrequency = UpdateFrequency.Update100;
                         }
-
-                        yield return true;
                     }
                 }
+
+                return requiredFrequency;
             }
         }
     }
