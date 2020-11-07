@@ -23,13 +23,11 @@ namespace IngameScript
     {
         public class PistonMotionController
         {
-            IMyPistonBase myPiston;
-            float setSpeed = 0.5f;      //[m/s]
-            float setPosition = -1;
-            float acceleration = 5f;    //[m/s²]
-            bool truncatePosition = true;
+            public float setSpeed = 0.5f;   //[m/s]
+            public bool truncatePosition = true;
 
-            IEnumerator<bool> myStateMachine;
+            IMyPistonBase myPiston;
+            float setPosition = -1;
             UpdateFrequency requiredFrequency;
             Program parentProgram;
 
@@ -45,19 +43,19 @@ namespace IngameScript
                 {
                     if (!truncatePosition)
                     {
-                        parentProgram.Echo("Piston target position out of limits");
+                        //parentProgram.Echo("Piston target position out of limits");
                         requiredFrequency = UpdateFrequency.None;
                         return requiredFrequency;
                     }
                     else
                     {
-                        parentProgram.Echo("Truncating target position");
+                        //parentProgram.Echo("Truncating target position");
                         position = (position < myPiston.MinLimit) ? myPiston.MinLimit : (position > myPiston.MaxLimit) ? myPiston.MaxLimit : position;
                     }
                 }
                     
                 setPosition = position;
-                parentProgram.Echo($"Piston target position set to {position:0.#}");
+                //parentProgram.Echo($"Piston target position set to {position:0.#}");
                 requiredFrequency = UpdateFrequency.Once;
 
                 return requiredFrequency;
@@ -86,13 +84,13 @@ namespace IngameScript
                     float signedSpeed = setSpeed * moveDirection;
                     float timeToTargetPosition = distanceFromTargetPosition / setSpeed;
                     
-                    parentProgram.Echo($"Piston has {distanceFromTargetPosition:0.#} m to go, {timeToTargetPosition:0.#}s at {setSpeed:0.#}m/s");
+                    //parentProgram.Echo($"Piston has {distanceFromTargetPosition:0.#} m to go, {timeToTargetPosition:0.#}s at {setSpeed:0.#}m/s");
 
                     //less than 1 tick remaining, call it done
                     if (timeToTargetPosition < (1f / 60))
                     {
                         myPiston.Velocity = 0;
-                        parentProgram.Echo("Piston done");
+                        //parentProgram.Echo("Piston done");
                         requiredFrequency = UpdateFrequency.None;
                     }
                     else
@@ -102,19 +100,19 @@ namespace IngameScript
                         //less than 10 ticks remaining
                         if (timeToTargetPosition < (1f / 6))
                         {
-                            parentProgram.Echo("Switching to Update1");
+                            //parentProgram.Echo("Switching to Update1");
                             requiredFrequency = UpdateFrequency.Update1;
                         }
                         //less than 100 ticks remaining
                         else if (timeToTargetPosition < (1f / 0.6))
                         {
-                            parentProgram.Echo("Switching to Update10");
+                            //parentProgram.Echo("Switching to Update10");
                             requiredFrequency = UpdateFrequency.Update10;
                         }
                         //more than 99 ticks remaining
                         else
                         {
-                            parentProgram.Echo("Switching to Update100");
+                            //parentProgram.Echo("Switching to Update100");
                             requiredFrequency = UpdateFrequency.Update100;
                         }
                     }
