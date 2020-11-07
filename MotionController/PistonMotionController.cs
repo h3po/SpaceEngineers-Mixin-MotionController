@@ -21,26 +21,17 @@ namespace IngameScript
 {
     partial class Program
     {
-        public class PistonMotionController
+        public class PistonMotionController : MotionController
         {
             public float setSpeed = 0.5f;   //[m/s]
             public bool truncatePosition = true;
 
             IMyPistonBase myPiston;
             float setPosition = -1;
-            UpdateFrequency requiredFrequency;
-            Program parentProgram;
-            Action<string> Echo = text => {};
 
-            public PistonMotionController(IMyPistonBase piston, Program program)
+            public PistonMotionController(IMyPistonBase piston, Program program) : base(program)
             {
                 myPiston = piston;
-                parentProgram = program;
-            }
-
-            public void EnableDebug()
-            {
-                Echo = parentProgram.Echo;
             }
 
             public UpdateFrequency SetTarget(float position)
@@ -67,20 +58,7 @@ namespace IngameScript
                 return requiredFrequency;
             }
 
-            bool UpdateTypeMatchesFrequency(UpdateType type, UpdateFrequency frequency)
-            {
-                if (((frequency == UpdateFrequency.Once) && ((type & UpdateType.Once) != 0)) || 
-                    ((frequency == UpdateFrequency.Update1) && ((type & UpdateType.Update1) != 0)) ||
-                    ((frequency == UpdateFrequency.Update10) && ((type & UpdateType.Update10) != 0)) ||
-                    ((frequency == UpdateFrequency.Update100) && ((type & UpdateType.Update100) != 0)))
-                {
-                    return true;
-                }
-
-                return false;
-            }
-
-            public UpdateFrequency Update(UpdateType updateType)
+            public override UpdateFrequency Update(UpdateType updateType)
             {
                 if ((setPosition >= 0) && (UpdateTypeMatchesFrequency(updateType, requiredFrequency)))
                 {
