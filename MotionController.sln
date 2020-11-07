@@ -1,0 +1,18 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.489
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "MotionController", "MotionController\MotionController.shproj", "{A623C8EA-AEB4-439C-AD65-2E487A6B766A}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		MotionController\MotionController.projitems*{a623c8ea-aeb4-439c-ad65-2e487a6b766a}*SharedItemsImports = 13
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {773154CD-18FB-41DC-94B3-3AC7531C2A31}
+	EndGlobalSection
+EndGlobal
