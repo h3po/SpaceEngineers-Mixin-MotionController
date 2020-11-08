@@ -26,16 +26,16 @@ namespace IngameScript
             public float setSpeed = 0.5f;   //[m/s]
             public float setTarget = -1;
             public bool truncatePosition = true;
-            IMyPistonBase myPiston;
+            public IMyPistonBase piston;
 
             public PistonMotionController(IMyPistonBase piston, Program program) : base(program)
             {
-                myPiston = piston;
+                this.piston = piston;
             }
 
             public override UpdateFrequency SetTarget(float target)
             {
-                if ((target <= myPiston.MinLimit) || (target >= myPiston.MaxLimit))
+                if ((target <= piston.MinLimit) || (target >= piston.MaxLimit))
                 {
                     if (!truncatePosition)
                     {
@@ -46,7 +46,7 @@ namespace IngameScript
                     else
                     {
                         Echo("Truncating target position");
-                        target = (target < myPiston.MinLimit) ? myPiston.MinLimit : (target > myPiston.MaxLimit) ? myPiston.MaxLimit : target;
+                        target = (target < piston.MinLimit) ? piston.MinLimit : (target > piston.MaxLimit) ? piston.MaxLimit : target;
                     }
                 }
                     
@@ -62,8 +62,8 @@ namespace IngameScript
                 if ((setTarget >= 0) && (UpdateTypeMatchesFrequency(updateType, requiredFrequency)))
                 {
                     //always positive
-                    float distanceFromTargetPosition = Math.Max(myPiston.CurrentPosition, setTarget) - Math.Min(myPiston.CurrentPosition, setTarget);
-                    float moveDirection = Math.Sign(setTarget - myPiston.CurrentPosition);
+                    float distanceFromTargetPosition = Math.Max(piston.CurrentPosition, setTarget) - Math.Min(piston.CurrentPosition, setTarget);
+                    float moveDirection = Math.Sign(setTarget - piston.CurrentPosition);
                     float signedSpeed = setSpeed * moveDirection;
                     float timeToTargetPosition = distanceFromTargetPosition / setSpeed;
                     
@@ -72,13 +72,13 @@ namespace IngameScript
                     //less than 1 tick remaining, call it done
                     if (timeToTargetPosition < (1f / 60))
                     {
-                        myPiston.Velocity = 0;
+                        piston.Velocity = 0;
                         Echo("Piston done");
                         requiredFrequency = UpdateFrequency.None;
                     }
                     else
                     {
-                        myPiston.Velocity = signedSpeed;
+                        piston.Velocity = signedSpeed;
 
                         //less than 10 ticks remaining
                         if (timeToTargetPosition < (1f / 6))

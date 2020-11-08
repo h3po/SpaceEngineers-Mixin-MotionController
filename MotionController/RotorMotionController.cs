@@ -26,11 +26,11 @@ namespace IngameScript
             public float setSpeed = MathHelper.RPMToRadiansPerSecond * 1f;  //[rad/s]
             public float setTarget = float.NaN;                             //rad
             public bool truncatePosition = false;
-            IMyMotorStator myRotor;
+            public IMyMotorStator rotor;
 
             public RotorMotionController(IMyMotorStator rotor, Program program) : base(program)
             {
-                myRotor = rotor;
+                this.rotor = rotor;
             }
 
             public override UpdateFrequency SetTarget(float targetDegrees)
@@ -40,7 +40,7 @@ namespace IngameScript
 
             public UpdateFrequency SetTargetRadians(float targetRadians)
             {
-                if ((targetRadians <= myRotor.LowerLimitRad) || (targetRadians >= myRotor.UpperLimitRad))
+                if ((targetRadians <= rotor.LowerLimitRad) || (targetRadians >= rotor.UpperLimitRad))
                 {
                     if (!truncatePosition)
                     {
@@ -51,7 +51,7 @@ namespace IngameScript
                     else
                     {
                         Echo("Truncating target position to rotor limits");
-                        targetRadians = (targetRadians < myRotor.LowerLimitRad) ? myRotor.LowerLimitRad : (targetRadians > myRotor.UpperLimitRad) ? myRotor.UpperLimitRad : targetRadians;
+                        targetRadians = (targetRadians < rotor.LowerLimitRad) ? rotor.LowerLimitRad : (targetRadians > rotor.UpperLimitRad) ? rotor.UpperLimitRad : targetRadians;
                     }
                 }
                 else if ((truncatePosition) && (Math.Abs(targetRadians) > MathHelper.TwoPi))
@@ -71,8 +71,8 @@ namespace IngameScript
             {
                 if ((setTarget != float.NaN) && (UpdateTypeMatchesFrequency(updateType, requiredFrequency)))
                 {
-                    float radiansFromTargetPosition = Math.Max(myRotor.Angle, setTarget) - Math.Min(myRotor.Angle, setTarget);
-                    float moveDirection = Math.Sign(setTarget - myRotor.Angle);
+                    float radiansFromTargetPosition = Math.Max(rotor.Angle, setTarget) - Math.Min(rotor.Angle, setTarget);
+                    float moveDirection = Math.Sign(setTarget - rotor.Angle);
                     float signedSpeed = setSpeed * moveDirection;
                     float timeToTargetPosition = radiansFromTargetPosition / setSpeed;
 
@@ -81,15 +81,15 @@ namespace IngameScript
                     //less than 1 tick remaining, call it done
                     if (timeToTargetPosition < (1f / 60))
                     {
-                        myRotor.TargetVelocityRad = 0;
-                        myRotor.RotorLock = true;
+                        rotor.TargetVelocityRad = 0;
+                        rotor.RotorLock = true;
                         Echo("Rotor done");
                         requiredFrequency = UpdateFrequency.None;
                     }
                     else
                     {
-                        myRotor.RotorLock = false;
-                        myRotor.TargetVelocityRad = signedSpeed;
+                        rotor.RotorLock = false;
+                        rotor.TargetVelocityRad = signedSpeed;
 
                         //less than 10 ticks remaining
                         if (timeToTargetPosition < (1f / 6))
