@@ -39,7 +39,7 @@ namespace IngameScript
 
             public bool UpdateTypeMatchesFrequency(UpdateType type, UpdateFrequency frequency)
             {
-                if (((frequency == UpdateFrequency.Once) && ((type & UpdateType.Once) != 0)) ||
+                if (((frequency == UpdateFrequency.Once) && ((type & (UpdateType.Once | UpdateType.Update1 | UpdateType.Update10 | UpdateType.Update100)) != 0)) ||
                     ((frequency == UpdateFrequency.Update1) && ((type & UpdateType.Update1) != 0)) ||
                     ((frequency == UpdateFrequency.Update10) && ((type & UpdateType.Update10) != 0)) ||
                     ((frequency == UpdateFrequency.Update100) && ((type & UpdateType.Update100) != 0)))

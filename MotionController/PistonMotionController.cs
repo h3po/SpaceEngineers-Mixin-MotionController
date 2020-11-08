@@ -35,7 +35,7 @@ namespace IngameScript
 
             public override UpdateFrequency SetTarget(float target)
             {
-                if ((target <= piston.MinLimit) || (target >= piston.MaxLimit))
+                if ((target < piston.MinLimit) || (target > piston.MaxLimit))
                 {
                     if (!truncatePosition)
                     {
@@ -51,7 +51,7 @@ namespace IngameScript
                 }
                     
                 setTarget = target;
-                Echo($"Piston target position set to {target:0.#}");
+                Echo($"Piston \"{piston.CustomName}\" target position set to {target:0.#}");
                 requiredFrequency = UpdateFrequency.Once;
 
                 return requiredFrequency;

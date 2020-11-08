@@ -40,7 +40,7 @@ namespace IngameScript
 
             public UpdateFrequency SetTargetRadians(float targetRadians)
             {
-                if ((targetRadians <= rotor.LowerLimitRad) || (targetRadians >= rotor.UpperLimitRad))
+                if ((targetRadians < rotor.LowerLimitRad) || (targetRadians > rotor.UpperLimitRad))
                 {
                     if (!truncatePosition)
                     {
