@@ -35,8 +35,11 @@ namespace IngameScript
 
             public override UpdateFrequency SetTarget(float targetDegrees)
             {
-                float targetRadians = MathHelper.ToRadians(targetDegrees);
+                return SetTargetRadians(MathHelper.ToRadians(targetDegrees));
+            }
 
+            public UpdateFrequency SetTargetRadians(float targetRadians)
+            {
                 if ((targetRadians <= myRotor.LowerLimitRad) || (targetRadians >= myRotor.UpperLimitRad))
                 {
                     if (!truncatePosition)
@@ -47,13 +50,18 @@ namespace IngameScript
                     }
                     else
                     {
-                        Echo("Truncating target position");
+                        Echo("Truncating target position to rotor limits");
                         targetRadians = (targetRadians < myRotor.LowerLimitRad) ? myRotor.LowerLimitRad : (targetRadians > myRotor.UpperLimitRad) ? myRotor.UpperLimitRad : targetRadians;
                     }
                 }
+                else if ((truncatePosition) && (Math.Abs(targetRadians) > MathHelper.TwoPi))
+                {
+                    Echo("Truncating target position to within 360°");
+                    MathHelper.LimitRadians(ref targetRadians);
+                }
 
                 setTarget = targetRadians;
-                Echo($"Rotor target position set to {targetDegrees:0.#}°");
+                Echo($"Rotor target position set to {MathHelper.ToDegrees(targetRadians):0.#}°");
                 requiredFrequency = UpdateFrequency.Once;
 
                 return requiredFrequency;
@@ -63,7 +71,6 @@ namespace IngameScript
             {
                 if ((setTarget != float.NaN) && (UpdateTypeMatchesFrequency(updateType, requiredFrequency)))
                 {
-                    //always positive
                     float radiansFromTargetPosition = Math.Max(myRotor.Angle, setTarget) - Math.Min(myRotor.Angle, setTarget);
                     float moveDirection = Math.Sign(setTarget - myRotor.Angle);
                     float signedSpeed = setSpeed * moveDirection;

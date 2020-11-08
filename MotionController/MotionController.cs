@@ -50,6 +50,18 @@ namespace IngameScript
                 return false;
             }
 
+            public float UpdateFrequencyToInterval(UpdateFrequency frequency)
+            {
+                switch (frequency)
+                {
+                    case UpdateFrequency.Once:
+                    case UpdateFrequency.Update1: return 1f / 60;
+                    case UpdateFrequency.Update10: return 1f / 6;
+                    case UpdateFrequency.Update100: return 1f / 0.6f;
+                }
+                return 0;
+            }
+
             public abstract UpdateFrequency SetTarget(float target);
             public abstract UpdateFrequency Update(UpdateType updateType);
         }
